@@ -76,7 +76,16 @@ public class PlayPodcast implements RequestHandler<APIGatewayV2HTTPEvent, APIGat
     }
 
     private String responseRedirect(String bucket, String key) {
-        // TODO: Use the S3Presigner to generate a presigned url
-        return String.format("https://s3.%s.amazonaws.com/%s/%s", AWS_REGION, bucket, key);
+        GetObjectRequest request = GetObjectRequest.builder().bucket(bucket).key(key).build();
+        GetObjectPresignRequest presignRequest =
+                GetObjectPresignRequest
+                        .builder()
+                        .getObjectRequest(request)
+                        .signatureDuration(Duration.ofHours(24))
+                        .build();
+
+        PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(presignRequest);
+
+        return presignedGetObjectRequest.url().toString();
     }
 }

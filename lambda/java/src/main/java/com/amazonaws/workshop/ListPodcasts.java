@@ -41,38 +41,33 @@ public class ListPodcasts implements RequestHandler<APIGatewayV2HTTPEvent, APIGa
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
         DynamoDbTable<PodcastEpisode> podcastTable = enhancedClient.table(PODCAST_TABLE, WorkshopUtils.LIST_PODCAST_TABLE_SCHEMA);
 
-        ScanRequest.Builder scanRequest =
-                ScanRequest
+        ScanEnhancedRequest.Builder scanEnhancedRequest =
+                ScanEnhancedRequest
                         .builder()
-                        .tableName(PODCAST_TABLE)
-                        .projectionExpression("id, #t, #p")
-                        .expressionAttributeNames(ImmutableMap.of("#t", "title", "#p", "podcast"));
+                        .addAttributeToProject("title")
+                        .addAttributeToProject("id")
+                        .addAttributeToProject("podcast");
 
         if (event.getQueryStringParameters() != null) {
-            scanRequest.filterExpression(getFilterExpressionFromQueryParams(event.getQueryStringParameters()).expression());
+            scanEnhancedRequest.filterExpression(getFilterExpressionFromQueryParams(event.getQueryStringParameters()));
         }
 
-        ScanResponse response = dynamoDbClient.scan(scanRequest.build());
+        PageIterable<PodcastEpisode> podcastEpisodes = podcastTable.scan(scanEnhancedRequest.build());
 
-        System.out.println(String.format("Number of podcasts returned in response: %d", response.count()));
+        List<PodcastEpisode> episodes = podcastEpisodes.stream().flatMap(p -> {
+            System.out.println(String.format("Number of podcasts returned in response: %d", p.items().size()));
 
-        if (response.hasLastEvaluatedKey()) {
-            System.out.println("Response contains LastEvaluatedKey. There is still more data to be scanned.");
-        } else {
-            System.out.println("Response does not contain LastEvaluatedKey. There is no more data to be scanned.");
-        }
+            if (p.lastEvaluatedKey() != null) {
+                System.out.println("Response contains LastEvaluatedKey. There is still more data to be scanned.");
+            } else {
+                System.out.println("Response does not contain LastEvaluatedKey. There is no more data to be scanned.");
+            }
 
-        List<Map<String, String>> items = new ArrayList<>();
-        for(Map<String, AttributeValue> av : response.items()) {
-            Map<String, String> subMap = new HashMap<>();
-            av.entrySet().forEach(e -> {
-                subMap.put(e.getKey(), e.getValue().s());
-            });
-            items.add(subMap);
-        }
+            return p.items().stream();
+        }).collect(Collectors.toList());
 
         try {
-            return APIGatewayV2HTTPResponse.builder().withStatusCode(200).withBody(WorkshopUtils.writeValue(items)).build();
+            return APIGatewayV2HTTPResponse.builder().withStatusCode(200).withBody(WorkshopUtils.writeValue(episodes)).build();
         } catch (Exception e) {
             throw new RuntimeException("Unable to list podcasts!", e);
         }

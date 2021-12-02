@@ -28,12 +28,10 @@ def _get_s3_artifact_key(event):
 
 
 def _get_artifact_url(s3_client, s3_bucket, s3_key):
-    # TODO: Return presigned url for the 'get_object' operation using the
-    #  s3_client.generate_presigned_url() method. This URL should be valid
-    #  for 24 hours.
-    return (
-        f'https://s3.{s3_client.meta.region_name}.amazonaws.com/'
-        f'{s3_bucket}/{s3_key}'
+    return s3_client.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': s3_bucket, 'Key': s3_key},
+        ExpiresIn=24 * HOUR_IN_SECONDS
     )
 
 

@@ -60,22 +60,32 @@ func (h *Handler) Handle(ctx context.Context, input events.APIGatewayV2HTTPReque
 func (h *Handler) getEpisodes(ctx context.Context, expr ddbexp.Expression) (
 	[]workshop.ListEpisodeItem, *events.APIGatewayV2HTTPResponse, error,
 ) {
-	result, err := h.ddbClient.Scan(ctx, &ddb.ScanInput{
+	scanPaginator := ddb.NewScanPaginator(h.ddbClient, &ddb.ScanInput{
 		TableName:                 &h.episodeTableName,
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		FilterExpression:          expr.Filter(),
 		ProjectionExpression:      expr.Projection(),
 	})
-	if err != nil {
-		resp, err := handleScanError(err)
-		return nil, resp, err
-	}
-	printResponseDebugInformation(result)
+	var episodes []workshop.ListEpisodeItem
+	for scanPaginator.HasMorePages() {
+		result, err := scanPaginator.NextPage(ctx)
+		if err != nil {
+			resp, err := handleScanError(err)
+			return nil, resp, err
+		}
+		printResponseDebugInformation(result)
 
-	// Convert the DynamoDB AttributeValue datatype into our ListEpisodeItem type.
-	episodes, err := unmarshalEpisodeItems(result.Items)
-	return episodes, nil, err
+		// Convert the DynamoDB AttributeValue datatype into our
+		// ListEpisodeItem type.
+		pageEpisodes, err := unmarshalEpisodeItems(result.Items)
+		if err != nil {
+			return nil, nil, err
+		}
+		episodes = append(episodes, pageEpisodes...)
+	}
+
+	return episodes, nil, nil
 }
 
 func handleScanError(err error) (*events.APIGatewayV2HTTPResponse, error) {

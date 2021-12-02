@@ -11,12 +11,19 @@ import { getDynamodbClient, PODCAST_TABLENAME } from './utils.js';
 
 export const handler = async (event) => {
   console.log(`Event:\n${JSON.stringify(event)}`);
+
   const client = getDynamodbClient();
-  const response = await client.send(
-    new ScanCommand(getScanParams(event.queryStringParameters))
-  );
-  logResponseInfo(response);
-  return response.Items;
+  const podcasts = [];
+  for await (const record of paginateScan(
+    { client },
+    getScanParams(event.queryStringParameters)
+  )) {
+    if (record.Items) {
+      podcasts.push(...record.Items);
+    }
+    logResponseInfo(record);
+  }
+  return podcasts;
 };
 
 const getScanParams = (queryString) => {

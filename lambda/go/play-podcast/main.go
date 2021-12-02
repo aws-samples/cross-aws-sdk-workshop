@@ -63,11 +63,18 @@ func (h *Handler) Handle(ctx context.Context, input events.APIGatewayV2HTTPReque
 }
 
 func (h *Handler) respondRedirect(ctx context.Context, mediaKey string) (*events.APIGatewayV2HTTPResponse, error) {
-	// TODO use the SDK's PresignClient to create a presigned URL for the
-	// GetObject API operation.
-	return workshop.NewTemporaryRedirectResponse(
-		fmt.Sprintf("https://s3.%s.amazonaws.com/%s/%s", h.awsRegion, h.bucketName, mediaKey),
-	)
+	presigned, err := h.s3PresignClient.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: &h.bucketName,
+		Key:    &mediaKey,
+	}, func(o *s3.PresignOptions) {
+		o.Expires = time.Hour * 24
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create presigned URL %v, %v",
+			mediaKey, err)
+	}
+
+	return workshop.NewTemporaryRedirectResponse(presigned.URL)
 }
 
 func (h *Handler) checkMediaExists(ctx context.Context, mediaKey string) (*events.APIGatewayV2HTTPResponse, error) {

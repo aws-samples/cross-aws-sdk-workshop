@@ -6,10 +6,13 @@ import boto3.dynamodb.conditions
 
 
 def lambda_handler(event, context):
+    podcasts = []
     dynamodb_client = get_dynamodb_client()
-    response = dynamodb_client.scan(**_get_scan_kwargs(event))
-    _print_response_debugging_information(response)
-    return response['Items']
+    scan_paginator = dynamodb_client.get_paginator('scan')
+    for response in scan_paginator.paginate(**_get_scan_kwargs(event)):
+        podcasts.extend(response['Items'])
+        _print_response_debugging_information(response)
+    return podcasts
 
 
 def _print_response_debugging_information(response):

@@ -67,11 +67,21 @@ const getEpisodeMediaKey = (contentType, episodeId) => {
 };
 
 const responseRedirect = async (client, bucket, key) => {
-  // TODO: use the @aws-sdk/s3-request-presigner package's getSignedUrl() to
-  // create a presigned URL for the GetObject command.
-  return temporaryRedirectResponse(
-    `https://s3.${await client.config.region()}.amazonaws.com/${bucket}/${key}`
-  );
+  try {
+    const presigned = await getSignedUrl(
+      client,
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      }),
+      {
+        expiresIn: 24 * HOUR,
+      }
+    );
+    return temporaryRedirectResponse(presigned);
+  } catch (e) {
+    throw new Error(`Failed to crate presigned URL ${contentType}: ${e}`);
+  }
 };
 
 const checkMediaExists = async (client, bucket, key) => {
