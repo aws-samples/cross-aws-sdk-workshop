@@ -1,0 +1,52 @@
+{
+  "name": "cdk",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "bin": {
+    "cdk": "bin/app.js"
+  },
+  "main": "dist/bin/app.js",
+  "types": "dist/types/app.d.ts",
+  "scripts": {
+    "clean": "rm -rf ./dist/* ./cdk.out",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "jest": "jest",
+    "test": "npm run-script format-check && npm run-script lint && jest",
+    "cdk": "cdk",
+    "lint": "eslint --max-warnings 0 --ext .js,.ts ./lib",
+    "lint-fix": "eslint --max-warnings 0 --ext .js,.ts --fix ./lib",
+    "format-check": "prettier --check ./lib",
+    "format-fix": "prettier --write ./lib"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.43.0",
+    "@aws-sdk/client-s3": "^3.43.0",
+    "@aws-sdk/lib-dynamodb": "^3.43.0",
+    "@aws-sdk/lib-storage": "^3.43.0",
+    "@aws-sdk/s3-request-presigner": "^3.43.0",
+    "@aws-sdk/util-dynamodb": "^3.43.0",
+    "@aws/dynamodb-expressions": "^0.7.3",
+    "@types/jest": "^26.0.10",
+    "@types/node": "10.17.27",
+    "@types/source-map-support": "^0.5.4",
+    "@typescript-eslint/eslint-plugin": "^4.31.2",
+    "@typescript-eslint/parser": "^4.31.2",
+    "aws-cdk": "^1.130.0",
+    "aws-sdk": "^2.1001.0",
+    "constructs": "^3.3.161",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "jest": "^26.4.2",
+    "mime": "^3.0.0",
+    "monocdk": "^1.130.0",
+    "prettier": "^2.4.1",
+    "prettier-plugin-organize-imports": "^2.3.4",
+    "ts-jest": "^26.2.0",
+    "ts-node": "^9.0.0",
+    "typescript": "~3.9.7"
+  },
+  "dependencies": {
+    "source-map-support": "^0.5.16"
+  }
+}

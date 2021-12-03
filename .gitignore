@@ -1,0 +1,13 @@
+.DS_Store
+.vscode/
+.idea
+.iml
+*.d.ts
+*.js
+!lambda/javascript/**/*.js
+cdk.out
+
+node_modules
+dist
+/.aws-sam
+/.workshop-config.json
