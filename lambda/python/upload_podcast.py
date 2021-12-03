@@ -23,8 +23,8 @@ def lambda_handler(event, context):
             f'Uploading podcast to S3 URI: s3://{s3_bucket}/{s3_key} '
             f'with Content-Type: {content_type}'
         )
-        raise NotImplementedError(
-            'Need to call s3_client.upload_fileobj() method to upload to S3'
+        s3_client.upload_fileobj(
+            stream, s3_bucket, s3_key, {'ContentType': content_type}
         )
     _update_event_state(event, s3_key, content_type)
     return event

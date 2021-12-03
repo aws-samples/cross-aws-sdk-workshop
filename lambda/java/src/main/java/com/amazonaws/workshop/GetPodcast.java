@@ -35,17 +35,21 @@ public class GetPodcast implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
         DynamoDbTable<PodcastEpisode> podcastTable = enhancedClient.table(PODCAST_TABLE, WorkshopUtils.GET_PODCAST_TABLE_SCHEMA);
 
         String episodeId = event.getPathParameters().get("id");
+
         if (episodeId == null || episodeId == "") {
             throw new IllegalArgumentException("Episode Id not provided");
         }
 
         Key key = Key.builder().partitionValue(event.getPathParameters().get("id")).build();
 
-        PodcastEpisode podcastEpisode = podcastTable.getItem(key);
         try {
+            PodcastEpisode podcastEpisode = podcastTable.getItem(key);
             return APIGatewayV2HTTPResponse.builder().withStatusCode(200).withBody(WorkshopUtils.writeValue(podcastEpisode)).build();
+        } catch (ProvisionedThroughputExceededException e) {
+            TooManyRequestsError error = new TooManyRequestsError("Please slow down request rate");
+            return APIGatewayV2HTTPResponse.builder().withStatusCode(429).withBody(WorkshopUtils.writeValue(error)).build();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to get podcast", e);
+            throw new RuntimeException("Failed to get podcast!", e);
         }
     }
 }

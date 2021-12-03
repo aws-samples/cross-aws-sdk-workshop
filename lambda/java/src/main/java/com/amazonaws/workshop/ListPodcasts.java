@@ -77,11 +77,19 @@ public class ListPodcasts implements RequestHandler<APIGatewayV2HTTPEvent, APIGa
 
         List<Expression> expressions = new ArrayList<>();
         if (params.containsKey("podcast")) {
-            throw new UnsupportedOperationException("Podcast condition not implemented");
+            expressions.add(Expression.builder()
+                    .expression("#p = :b")
+                    .putExpressionName("#p", "podcast")
+                    .putExpressionValue(":b", AttributeValue.builder().s(params.get("podcast")).build())
+                    .build());
         }
 
         if (params.containsKey("in-title")) {
-            throw new UnsupportedOperationException("in-title condition not implemented");
+            expressions.add(Expression.builder()
+                    .expression("contains(#i, :t)")
+                    .putExpressionName("#i", "title")
+                    .putExpressionValue(":t", AttributeValue.builder().s(params.get("in-title")).build())
+                    .build());
         }
 
         if (expressions.size() == 1) {

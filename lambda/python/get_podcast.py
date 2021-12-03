@@ -6,7 +6,11 @@ from utils import (
 
 def lambda_handler(event, context):
     dynamodb_client = get_dynamodb_client()
-    podcast = _get_podcast_from_table(dynamodb_client, PODCAST_TABLENAME, event)
+    try:
+        podcast = _get_podcast_from_table(dynamodb_client, PODCAST_TABLENAME, event)
+    except dynamodb_client.exceptions.ProvisionedThroughputExceededException as e:
+        print('Received exception: {e}. Returning a 429 HTTP response')
+        return get_too_many_requests_error_response('Please slow down request rate')
     if podcast is None:
         return get_not_found_error_response('Podcast not found')
     return podcast

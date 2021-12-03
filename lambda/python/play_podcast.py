@@ -36,8 +36,13 @@ def _get_artifact_url(s3_client, s3_bucket, s3_key):
 
 
 def _wait_for_artifact_to_exist(s3_client, s3_bucket, s3_key):
-    # TODO: Create an 'object_exists' waiter and wait at increments
-    #  of three seconds for a maximum of six attempts. If the waiter
-    #  fails/times out, the function should catch the WaiterError and return
-    #  False.
+    waiter = s3_client.get_waiter('object_exists')
+    try:
+        waiter.wait(
+            Bucket=s3_bucket,
+            Key=s3_key,
+            WaiterConfig={'Delay': 3, 'MaxAttempts': 6}
+        )
+    except botocore.exceptions.WaiterError:
+        return False
     return True

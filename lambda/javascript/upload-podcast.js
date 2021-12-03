@@ -17,7 +17,17 @@ export const handler = async (event) => {
   console.log(
     `Uploading podcast to S3 URI: s3://${bucket}/${key} with Content-Type: ${contentType}`
   );
-  throw new Error("Need to implement s3 upload");
+  const multipartUpload = new Upload({
+    client: s3Client,
+    queueSize: 10,
+    params: {
+      Bucket: bucket,
+      Key: key,
+      Body: incomeMessage,
+      ContentType: contentType,
+    },
+  });
+  await multipartUpload.done();
 
   return updateEventState(event, key, contentType);
 };

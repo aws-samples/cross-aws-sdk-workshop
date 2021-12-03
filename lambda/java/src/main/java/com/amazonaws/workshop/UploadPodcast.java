@@ -57,7 +57,9 @@ public class UploadPodcast implements RequestStreamHandler {
     }
 
     private void uploadMedia(byte[] podcast, String bucket, String key, String contentType) {
-        throw new RuntimeException("Need to implement upload using S3TransferManager");
+        AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytes(podcast);
+        PutObjectRequest request = PutObjectRequest.builder().bucket(PODCAST_BUCKET).key(key).contentType(contentType).build();
+        s3.upload(r -> r.requestBody(asyncRequestBody).putObjectRequest(request)).completionFuture().join();
     }
 
     private URLConnection downloadPodcast(PodcastEpisode podcastEpisode) throws Exception {

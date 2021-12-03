@@ -39,16 +39,16 @@ const getScanParams = (queryString) => {
   );
   const conditionalExpression = { type: 'And', conditions: [] };
   if (queryString?.podcast) {
-    // TODO: Use the conditional expression from @aws/dynamodb-expressions
-    // package to set the condition of the "podcast" attribute equaling the
-    // value of "podcast" parameter in the query string.
-    throw new Error("Conditional expression for podcast is not implemented");
+    conditionalExpression.conditions.push({
+      ...equals(queryString.podcast),
+      subject: 'podcast',
+    });
   }
   if (queryString?.['in-title']) {
-    // TODO: Use the conditional expression from @aws/dynamodb-expressions
-    // package to set the condition of the "title" attribute equaling the value
-    // of the "in-title" parameter in the query string.
-    throw new Error("Conditional expression for in-title is not implemented");
+    conditionalExpression.conditions.push({
+      ...contains(queryString['in-title']),
+      subject: 'title',
+    });
   }
   let filterExpression = serializeConditionExpression(
     conditionalExpression, 
@@ -59,7 +59,7 @@ const getScanParams = (queryString) => {
   }
   // Attribute Values is only need when filter expressions exist.
   const expressionAttributeValues = filterExpression
-    ? attributes.values
+    ? unmarshall(attributes.values)
     : undefined;
 
   return {

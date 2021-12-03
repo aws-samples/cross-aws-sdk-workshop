@@ -112,21 +112,23 @@ func getFilterExpressionFromQueryString(query map[string]string) (
 	builder ddbexp.ConditionBuilder, hasCondition bool, err error,
 ) {
 	if v, ok := query["podcast"]; ok && v != "" {
-		// Using the expression (aliased as ddbexp) package's
-		// ConditionBuilder set the podcastCondition to the condition of the
-		// "podcast" attribute equaling the value of "podcast" parameter in
-		// the query string.
-		return ddbexp.ConditionBuilder{}, false, fmt.Errorf("podcastCondition not implemented")
+		// Filter for episodes with the exact podcast specified.
+		builder = ddbexp.Equal(ddbexp.Name("podcast"), ddbexp.Value(v))
+		hasCondition = true
 	}
 	if v, ok := query["in-title"]; ok && v != "" {
-		// Using the expression (aliased as ddbexp) package's
-		// ConditionBuilder set the inTitleCondition to the condition of the
-		// "in-title" attribute equaling the value of "in-title" parameter in
-		// the query string.
-		return ddbexp.ConditionBuilder{}, false, fmt.Errorf("inTitleCondition not implemented")
+		// Filter for episodes a title containing value specified.
+		contains := ddbexp.Contains(ddbexp.Name("title"), v)
+
+		if hasCondition {
+			builder = builder.And(contains)
+		} else {
+			builder = contains
+		}
+		hasCondition = true
 	}
 
-	return ddbexp.ConditionBuilder{}, false, nil
+	return builder, hasCondition, nil
 }
 
 func printResponseDebugInformation(result *ddb.ScanOutput) {

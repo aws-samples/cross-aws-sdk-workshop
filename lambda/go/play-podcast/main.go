@@ -78,9 +78,22 @@ func (h *Handler) respondRedirect(ctx context.Context, mediaKey string) (*events
 }
 
 func (h *Handler) checkMediaExists(ctx context.Context, mediaKey string) (*events.APIGatewayV2HTTPResponse, error) {
-	// TODO use the SDK's ObjectExistsWaiter to detect if the mediaKey exists,
-	// and also allow the lambda handler to wait a short period of time for the
-	// object to be present.
+	// Wait for total of 15 seconds, with a 3 second delay between attempts.
+	// Will wait approximately 5 times.
+	err := h.s3ObjectWaiter.Wait(ctx, &s3.HeadObjectInput{
+		Bucket: &h.bucketName,
+		Key:    &mediaKey,
+	}, time.Second*15, func(o *s3.ObjectExistsWaiterOptions) {
+		o.MinDelay = time.Second * 3
+		// Log attempts so we can check them in the handler's logs.
+		o.LogWaitAttempts = true
+	})
+	if err != nil {
+		log.Printf("Failed to wait for object to exist, %v", err)
+		return workshop.NewNotFoundErrorResponse(
+			fmt.Sprintf("Episode media data not found, %v", mediaKey),
+		)
+	}
 	return nil, nil
 }
 

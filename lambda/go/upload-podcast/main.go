@@ -79,9 +79,18 @@ func (h *Handler) Handle(ctx context.Context, input workshop.TranscribeStateMach
 }
 
 func (h *Handler) uploadMedia(ctx context.Context, mediaKey, mediaContentType string, mediaContent io.Reader) error {
-	// TODO use the SDK's Amazon S3 transfer Upload manager to stream the media
-	// content to the workshop's Bucket.
-	return fmt.Errorf("upload to Amazon S3 not implemented")
+	_, err := h.s3Uploader.Upload(ctx, &s3.PutObjectInput{
+		Bucket:      &h.bucketName,
+		Key:         &mediaKey,
+		ContentType: &mediaContentType,
+		Body:        mediaContent,
+	})
+	if err != nil {
+		return err
+	}
+	log.Printf("uploaded episode, s3://%s/%s", h.bucketName, mediaKey)
+
+	return nil
 }
 
 func main() {

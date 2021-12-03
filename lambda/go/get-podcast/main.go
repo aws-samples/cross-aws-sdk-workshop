@@ -72,8 +72,12 @@ func (h *Handler) Handle(ctx context.Context, input events.APIGatewayV2HTTPReque
 }
 
 func handleGetItemError(err error) (*events.APIGatewayV2HTTPResponse, error) {
-	// TODO use the SDK's error types to handle specific errors returned by
-	// GetItem API operation.
+	var throttleErr *ddbtypes.ProvisionedThroughputExceededException
+	if errors.As(err, &throttleErr) {
+		log.Printf("Received exception: %v. Returning 429 HTTP Response", err)
+		return workshop.NewTooManyRequestsErrorResponse("Please slow down request rate")
+	}
+
 	return nil, fmt.Errorf("failed to get item from table, %w", err)
 }
 

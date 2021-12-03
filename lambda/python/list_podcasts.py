@@ -44,16 +44,9 @@ def _get_filter_expression_from_querystring(qs_params):
     podcast_condition = None
     in_title_condition = None
     if 'podcast' in qs_params:
-        # Using the ``boto3.dynamodb.condition.Attr`` class, set
-        # ``podcast_condition`` to the condition of the 'podcast' attribute
-        # equaling the value of 'podcast' parameter in the query string
-        raise NotImplementedError('podcast_condition')
+        podcast_condition = boto3.dynamodb.conditions.Attr('podcast').eq(qs_params['podcast'])
     if 'in-title' in qs_params:
-        # Using the ``boto3.dynamodb.condition.Attr`` class,  set
-        # ``in_title_condition`` to the condition of the 'title' attribute
-        # containing the value of 'in-title' parameter in the query string
-        raise NotImplementedError('in_title_condition')
-
+        in_title_condition = boto3.dynamodb.conditions.Attr('title').contains(qs_params['in-title'])
     return _chain_conditions(podcast_condition, in_title_condition)
 
 

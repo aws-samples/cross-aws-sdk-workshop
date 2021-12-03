@@ -16,7 +16,17 @@ export const handler = async (event) => {
 
   const client = getDynamodbClient();
   const docClient = new DynamoDBDocumentClient(client);
-  const podcast = await getPodcastFromTable(docClient, PODCAST_TABLENAME, event);
+  let podcast;
+  try {
+    podcast = await getPodcastFromTable(docClient, PODCAST_TABLENAME, event);
+  } catch (e) {
+    if (e?.name === 'ProvisionedThroughputExceededException') {
+      console.error(`Received exception: ${e}. Returning a 429 HTTP resposne`);
+      return tooManyRequestsErrorResponse('Please slow down request rate');
+    }
+    throw e;
+  }
+
   if (!podcast) {
     return notFoundErrorResponse(
       `Podcast id ${event?.pathParameters?.id} not found`

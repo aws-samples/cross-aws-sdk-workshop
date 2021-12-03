@@ -72,7 +72,11 @@ public class PlayPodcast implements RequestHandler<APIGatewayV2HTTPEvent, APIGat
     }
 
     private void checkMediaExists(String mediaKey) {
-        // TODO: Implement waiter
+        WaiterResponse<HeadObjectResponse> objectExistsWaiter = s3Waiter.waitUntilObjectExists(r -> r.key(mediaKey).bucket(PODCAST_BUCKET));
+
+        objectExistsWaiter.matched().exception().ifPresent(e -> {
+            throw new RuntimeException("Failed to wait for object to exist", e);
+        });
     }
 
     private String responseRedirect(String bucket, String key) {

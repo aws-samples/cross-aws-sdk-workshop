@@ -85,8 +85,20 @@ const responseRedirect = async (client, bucket, key) => {
 };
 
 const checkMediaExists = async (client, bucket, key) => {
-  // TODO: use S3 client(@aws-sdk/client-s3)'s waitUntilObjectExists() to detect
-  // if the mediaKey exists, and also allow the lambda handler to wait a short
-  // period of time for the object to be created.
-  return true;
+  try {
+    await waitUntilObjectExists(
+      {
+        client,
+        maxWaitTime: 15,
+      },
+      {
+        Bucket: bucket,
+        Key: key,
+      }
+    );
+    return true;
+  } catch (e) {
+    console.error(`Failed to wait for object to exist: ${e}`);
+    return false;
+  }
 };
