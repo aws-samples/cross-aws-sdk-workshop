@@ -20,8 +20,8 @@
     "format-fix": "prettier --write ./lib"
   },
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.43.0",
-    "@aws-sdk/client-s3": "^3.43.0",
+    "@aws-sdk/client-dynamodb": "^3.351.0",
+    "@aws-sdk/client-s3": "^3.350.0",
     "@aws-sdk/lib-dynamodb": "^3.43.0",
     "@aws-sdk/lib-storage": "^3.43.0",
     "@aws-sdk/s3-request-presigner": "^3.43.0",
